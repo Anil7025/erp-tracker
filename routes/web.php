@@ -25,6 +25,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::prefix('super-admin')->middleware('role:super admin')->name('super-admin.')->group(function () {
         Route::get('/', [SuperAdminController::class, 'index'])->name('index');
         Route::get('/users', [SuperAdminController::class, 'users'])->name('users');
+        Route::post('/users', [SuperAdminController::class, 'storeUser'])->name('users.store');
         Route::put('/users/{user}/access', [SuperAdminController::class, 'updateUserAccess'])->name('users.access.update');
         Route::get('/roles', [SuperAdminController::class, 'roles'])->name('roles');
         Route::post('/permissions', [SuperAdminController::class, 'storePermission'])->name('permissions.store');
@@ -46,6 +47,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::view('/manager', 'dashboard')->middleware('role:super admin|manager')->name('manager.dashboard');
     Route::view('/staff', 'dashboard')->middleware('role:super admin|staff')->name('staff.dashboard');
     Route::view('/user', 'dashboard')->middleware('role:super admin|user')->name('user.dashboard');
+
+    Route::view('/modules/employees', 'modules.show', ['title' => 'Employees', 'description' => 'Employee and HR management module.'])->middleware('permission:manage employees')->name('modules.employees');
+    Route::view('/modules/attendance', 'modules.show', ['title' => 'Attendance', 'description' => 'Attendance management module.'])->middleware('permission:manage attendance')->name('modules.attendance');
+    Route::view('/modules/payroll', 'modules.show', ['title' => 'Payroll', 'description' => 'Payroll management module.'])->middleware('permission:manage payroll')->name('modules.payroll');
+    Route::view('/modules/projects', 'modules.show', ['title' => 'Projects', 'description' => 'Project and team tracking module.'])->middleware('permission:manage projects')->name('modules.projects');
+    Route::view('/modules/tasks', 'modules.show', ['title' => 'Tasks', 'description' => 'Task tracking module.'])->middleware('permission:manage tasks')->name('modules.tasks');
+    Route::view('/modules/reports', 'modules.show', ['title' => 'Reports', 'description' => 'Reports and insights module.'])->middleware('permission:view reports')->name('modules.reports');
 });
 
 Route::middleware('auth')->group(function () {

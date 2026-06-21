@@ -9,6 +9,72 @@
                 <div class="rounded-md bg-green-50 p-4 text-sm text-green-700">{{ session('status') }}</div>
             @endif
 
+            @if ($errors->any())
+                <div class="rounded-md bg-red-50 p-4 text-sm text-red-700">
+                    <div class="font-semibold">Please fix these errors:</div>
+                    <ul class="mt-2 list-disc space-y-1 pl-5">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
+            <form method="POST" action="{{ route('super-admin.users.store') }}" class="bg-white p-6 shadow-sm sm:rounded-lg">
+                @csrf
+                <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900">Create New User Credentials</h3>
+                        <p class="mt-1 text-sm text-gray-500">Super Admin yahan se user create karke role aur direct permissions assign kar sakta hai.</p>
+                    </div>
+                    <x-primary-button>Create User</x-primary-button>
+                </div>
+
+                <div class="mt-6 grid gap-4 lg:grid-cols-3">
+                    <div>
+                        <x-input-label for="name" value="Name" />
+                        <x-text-input id="name" name="name" class="mt-1 block w-full" :value="old('name')" required />
+                    </div>
+                    <div>
+                        <x-input-label for="email" value="Email" />
+                        <x-text-input id="email" type="email" name="email" class="mt-1 block w-full" :value="old('email')" required />
+                    </div>
+                    <div>
+                        <x-input-label for="password" value="Password" />
+                        <x-text-input id="password" type="text" name="password" class="mt-1 block w-full" value="{{ old('password', 'password') }}" required />
+                        <p class="mt-1 text-xs text-gray-500">Default example: password. Live par strong password use karein.</p>
+                    </div>
+                </div>
+
+                <div class="mt-6 grid gap-6 lg:grid-cols-2">
+                    <div>
+                        <h4 class="font-semibold text-gray-900">Assign Roles</h4>
+                        <div class="mt-3 grid gap-2 sm:grid-cols-2">
+                            @foreach ($roles as $role)
+                                @continue($role->name === 'super admin')
+                                <label class="flex items-center gap-2 rounded border border-gray-200 p-2 text-sm">
+                                    <input type="checkbox" name="roles[]" value="{{ $role->name }}" @checked(in_array($role->name, old('roles', []), true))>
+                                    <span>{{ ucfirst($role->name) }}</span>
+                                </label>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="font-semibold text-gray-900">Direct Permissions Optional</h4>
+                        <div class="mt-3 grid max-h-64 gap-2 overflow-y-auto rounded border border-gray-100 p-2 sm:grid-cols-2">
+                            @foreach ($permissions as $permission)
+                                <label class="flex items-center gap-2 rounded border border-gray-200 p-2 text-sm">
+                                    <input type="checkbox" name="permissions[]" value="{{ $permission->name }}" @checked(in_array($permission->name, old('permissions', []), true))>
+                                    <span>{{ ucfirst($permission->name) }}</span>
+                                </label>
+                            @endforeach
+                        </div>
+                        <p class="mt-2 text-xs text-gray-500">Mostly role permissions enough hoti hain. Direct permission sirf user-specific access ke liye use karein.</p>
+                    </div>
+                </div>
+            </form>
+
             @foreach ($users as $user)
                 <form method="POST" action="{{ route('super-admin.users.access.update', $user) }}" class="bg-white p-6 shadow-sm sm:rounded-lg">
                     @csrf

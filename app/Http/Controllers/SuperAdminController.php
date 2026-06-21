@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -29,6 +31,44 @@ class SuperAdminController extends Controller
             'roles' => Role::orderBy('name')->get(),
             'permissions' => Permission::orderBy('name')->get(),
         ]);
+    }
+
+    public function storeUser(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:users,email'],
+            'password' => ['required', 'string', 'min:8'],
+            'roles' => ['required', 'array', 'min:1'],
+            'roles.*' => ['required', Rule::exists('roles', 'name')->where('guard_name', 'web')],
+            'permissions' => ['nullable', 'array'],
+            'permissions.*' => ['exists:permissions,name'],
+        ]);
+
+        $roles = collect($validated['roles'])
+            ->reject(fn (string $role): bool => $role === 'super admin')
+            ->values()
+            ->all();
+
+        if ($roles === []) {
+            return back()
+                ->withErrors(['roles' => 'New user ko kam se kam ek non-super-admin role assign karein.'])
+                ->withInput();
+        }
+
+        $user = User::create([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'password' => Hash::make($validated['password']),
+            'email_verified_at' => now(),
+        ]);
+
+        $user->assignRole($roles);
+        $user->syncPermissions($validated['permissions'] ?? []);
+
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+
+        return back()->with('status', "{$user->name} created successfully. Login: {$user->email} / Password: jo aapne set kiya.");
     }
 
     public function updateUserAccess(Request $request, User $user): RedirectResponse
