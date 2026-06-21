@@ -5,8 +5,16 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\SuperAdminController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
+// ─── Frontend (public landing pages) ──────────────────────────────────────
+Route::name('frontend.')->group(function () {
+    Route::get('/', fn () => view('frontend.index'))->name('home');
+    Route::view('/product', 'frontend.product')->name('product');
+    Route::view('/features', 'frontend.features')->name('features');
+    Route::view('/pricing', 'frontend.pricing')->name('pricing');
+    Route::view('/about', 'frontend.about')->name('about');
+    Route::view('/contact', 'frontend.contact')->name('contact');
+    Route::view('/sign-in', 'frontend.login')->name('login');
+    Route::view('/sign-up', 'frontend.register')->name('register');
 });
 
 Route::get('/dashboard', function () {
@@ -47,3 +55,16 @@ Route::middleware('auth')->group(function () {
 });
 
 require __DIR__.'/auth.php';
+
+// ─── Override auth login/register with frontend pages ─────────────────────
+// These come after auth.php so they override the default auth routes.
+// The POST routes are already registered by auth.php for /login and /register.
+Route::view('/login', 'frontend.login')->name('frontend.login-alt');
+Route::view('/register', 'frontend.register')->name('frontend.register-alt');
+
+// ─── POST handlers for /sign-in and /sign-up (same controllers as auth) ───
+// auth.php defines POST for /login and /register but not /sign-in and /sign-up.
+// The frontend forms submit via POST to their own URL (action="#"), so we need
+// POST routes that point to the same Auth controllers.
+Route::post('/sign-in', [App\Http\Controllers\Auth\AuthenticatedSessionController::class, 'store']);
+Route::post('/sign-up', [App\Http\Controllers\Auth\RegisteredUserController::class, 'store']);

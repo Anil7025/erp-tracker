@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 class RegisteredUserController extends Controller
 {
@@ -41,6 +43,25 @@ class RegisteredUserController extends Controller
             'email' => $request->email,
             'password' => Hash::make($request->password),
         ]);
+
+        $permissions = [
+            'view dashboard',
+            'manage users',
+            'manage employees',
+            'manage attendance',
+            'manage projects',
+            'manage tasks',
+            'view reports',
+            'manage profile',
+        ];
+
+        foreach ($permissions as $permission) {
+            Permission::findOrCreate($permission, 'web');
+        }
+
+        $role = Role::findOrCreate('admin', 'web');
+        $role->givePermissionTo($permissions);
+        $user->assignRole($role);
 
         event(new Registered($user));
 
