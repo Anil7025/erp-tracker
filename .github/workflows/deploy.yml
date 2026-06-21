@@ -16,7 +16,5 @@ jobs:
         with:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD git add .github/workflows/deploy.yml
-git commit -m "Add FTP deploy workflow"
-git push origin main}}
+          password: ${{ secrets.FTP_PASSWORD }}
           server-dir: /erp.nextoolshub.com/
